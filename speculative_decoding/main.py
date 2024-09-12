@@ -1,11 +1,6 @@
 import numpy as np
 import time
-
 from tqdm import tqdm
-
-from gpt2 import gpt
-from gpt2 import utils
-
 from gpt2.utils import load_encoder_hparams_and_params
 from gpt2.gpt import gpt2, softmax
 from helper import *
@@ -134,18 +129,18 @@ def main(
 
     # print results
     print()
-    print("Autoregressive Decode")
+    print("Autoregressive Decoding")
     print("---------------------")
     print(f"Time = {autoregressive_time:.2f}s")
     print(f"Text = {autoregressive_text}")
     print()
-    print("Speculative Decode")
+    print("Speculative Decoding")
     print("------------------")
     print(f"Time = {speculative_time:.2f}s")
     print(f"Text = {speculative_text}")
     
     
-print('commit test!')
+
 if __name__ == "__main__":
     import fire
 
