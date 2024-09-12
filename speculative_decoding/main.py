@@ -30,38 +30,44 @@ def auto_reg_sampling(input_seq, model, N_future):
 def spec_sampling(input_seq, draft_model, target_model, N_future, k):
   n = len(input_seq)
   T = len(input_seq) + N_future
-  
-  while n < T:
-    
-    #step1: autoreg generate from draft model and sample p
-    input_draft = input_seq
-    for _ in range(k):
-      p = draft_model(input_draft) #out logits
-      input_draft = np.append(input_draft, get_sample(p[-1]))
+
+  with tqdm(total=N_future, desc="Spec Sampling") as pbar:
+    while n < T:
+      prev_n = n
+      #step1: autoreg generate from draft model and sample p
+      input_draft = input_seq
+      for _ in range(k):
+        p = draft_model(input_draft) #out logits
+        input_draft = np.append(input_draft, get_sample(p[-1]))
       
-    #step2: input the whole seq of draft to target model
-    q = target_model(input_draft)
-    
-    
-    #step3: Acceptance/ Rejection based on the p/q ratio
-    all_generated_tokens_accepted = True
-    for _ in range(k):
-      i = n - 1
-      j = input_draft[i + 1]
+      #step2: input the whole seq of draft to target model
+      q = target_model(input_draft)
       
-      if np.random.random() < min(1, q[i][j] / p[i][j]): #accepted
-        input_draft = np.append(input_draft, j)
+      #step3: Acceptance/ Rejection based on the p/q ratio
+      all_generated_tokens_accepted = True
+      for _ in range(k):
+        i = n - 1
+        j = input_draft[i + 1]
+        
+        if np.random.random() < min(1, q[i][j] / p[i][j]): #accepted
+          input_seq = np.append(input_seq, j)
+          n += 1
+        else: #rejected ---> resample from q-p
+          input_seq = np.append(input_seq, get_sample(max_fn(q[i] -  p[i])))
+          n += 1
+          all_generated_tokens_accepted = False
+          break
+               
+      #step 4
+      if all_generated_tokens_accepted:
+        input_seq = np.append(input_seq, get_sample(q[-1]))
         n += 1
-      else: #rejected ---> resample from q-p
-        input_draft = np.append(input_draft, get_sample(max_fn(q[i] -  p[i])))
-        n += 1
-        all_generated_tokens_accepted = False
-        break
-    if all_generated_tokens_accepted:
-      input_draft = np.append(input_draft, get_sample(q[-1]))
-      n += 1
-      
-  return input_draft
+
+      # just keeping my sanity
+      pbar.update(n - prev_n)
+      assert n == len(input_seq), f"{n} {len(input_seq)}"
+  return input_seq
+
 
 
 def create_model_fn(params, hparams, temperature, eps=1e-10):
@@ -74,7 +80,6 @@ def create_model_fn(params, hparams, temperature, eps=1e-10):
         return probs
 
     return model_fn
-
 
 def main(
     prompt: str = "Alan Turing theorized that computers would one day become",
@@ -101,30 +106,30 @@ def main(
 
     # encode inputs
     input_ids = encoder.encode(prompt)
-
-    def run_sampling_fn(decode_fn, input_ids, **kwargs):
+  
+    def run_sampling_fn(decode_fn, input_seq, **kwargs):
         start = time.perf_counter()
-        output_ids = decode_fn(x=input_ids, **kwargs)
+        output_ids = decode_fn(input_seq=input_seq, **kwargs)
         text = encoder.decode(output_ids)
         elapsed_time = time.perf_counter() - start
         return text, elapsed_time
 
-    # autoregressive
+    # autoregressive sampling
     autoregressive_text, autoregressive_time = run_sampling_fn(
         auto_reg_sampling,
-        input_ids,
+        input_seq=input_ids,  # Pass correct parameter
         model=target_model,
-        N=n_tokens_to_generate,
+        N_future=n_tokens_to_generate,  # Use N_future instead of N
     )
 
-    # speculative
+    # speculative sampling
     speculative_text, speculative_time = run_sampling_fn(
         spec_sampling,
-        input_ids,
+        input_seq=input_ids,  # Pass correct parameter
         target_model=target_model,
         draft_model=draft_model,
-        N=n_tokens_to_generate,
-        K=K,
+        N_future=n_tokens_to_generate,  # Use N_future instead of N
+        k=K,
     )
 
     # print results
@@ -138,16 +143,10 @@ def main(
     print("------------------")
     print(f"Time = {speculative_time:.2f}s")
     print(f"Text = {speculative_text}")
-
-
+    
+    
+print('commit test!')
 if __name__ == "__main__":
     import fire
 
     fire.Fire(main)
-
-      
-        
-        
-  
-  
-  

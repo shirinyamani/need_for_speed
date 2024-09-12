@@ -19,4 +19,4 @@ def get_sample(p):
     
 #used np.array for the broadcasting feature of the numpy n elementwise operation
 #print(max_fn(np.array([1,2,-2,5,5])))
-print(get_sample(np.array([0.1,0.3, 0.6])))
+#print(get_sample(np.array([0.1,0.3, 0.6])))
