@@ -12,4 +12,19 @@ Now the clever idea is to use a small and cheap draft model to first generate a 
 The reason this works in practice is that most of the time the draft tokens get accepted, because they are easy, so even a much smaller draft model gets them. As these easy tokens get accepted, we skip through those parts in leaps. The hard tokens where the big model disagrees "fall back" to original speed, but actually a bit slower because of all the extra work.
 
 
-# Why this works mathematcially ? 
+# Why this works mathematically?
+
+Speculative decoding's mathematical foundation is rooted in rejection sampling, a Monte Carlo method used to generate samples from a target distribution when direct sampling is difficult.
+
+# Why so magically we can re-construct the probability distribution of the large model from the smaller model?
+
+In the following I try to explain why sampling from another smaller model which is somewhat close to the large model can actually reconstruct the probability distribution of the large model.
+
+Imagine we have a crazy complicated funtion that we cannot access it directly to be able to sample from it. One approach in such situation is to instead sample from a simpler model that is somewhat close to the complicated one. 
+
+If we decide to go for such approach, then the chosen proposed model has to have two important properties:
+
+1. The proposed model should be somewhat close to the large model, i.e. the proposed model must be able to capture the overall shape of the distribution of the large model. In other words, it must be able to generate the most common and likely tokens that the large model would generate. This ensures that the proposed model is a good approximation of the large model's behavior for the majority of the tokens.
+
+2. The proposed model must be easy to sample from, i.e. we must be able to generate tokens from the proposed model efficiently.
+
