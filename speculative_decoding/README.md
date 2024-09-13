@@ -14,17 +14,14 @@ The reason this works in practice is that most of the time the draft tokens get 
 
 # Why this works mathematically?
 
-Speculative decoding's mathematical foundation is rooted in rejection sampling, a Monte Carlo method used to generate samples from a target distribution when direct sampling is difficult.
+Speculative decoding's mathematical foundation is rooted in rejection sampling, a Monte Carlo method used to generate samples from a draft/smaller distribution when direct sampling from the target/larger distribution is difficult.
 
-# Why so magically we can re-construct the probability distribution of the large model from the smaller model?
+## Mathematical Foundation: Rejection Sampling
 
-In the following I try to explain why sampling from another smaller model which is somewhat close to the large model can actually reconstruct the probability distribution of the large model.
+Speculative decoding's mathematical foundation is rooted in rejection sampling, a Monte Carlo method used to generate samples from a target distribution when direct sampling is difficult. The process involves using a proposal distribution (the draft model) that's easier to sample from, then accepting or rejecting these samples based on comparison with the target distribution (the large model). The rejection sampling theorem guarantees that if we sample from the proposal distribution and accept samples with probability proportional to the ratio of target to proposal distributions, the accepted samples will follow the target distribution exactly. The reason of why this so magically works roots back to the bayes rule that we use to calculate the conditional probability of the next token given the previous context.
 
-Imagine we have a crazy complicated funtion that we cannot access it directly to be able to sample from it. One approach in such situation is to instead sample from a simpler model that is somewhat close to the complicated one. 
+## Rejection Sampling Theorem
 
-If we decide to go for such approach, then the chosen proposed model has to have two important properties:
+The theorem states that if we have a target distribution \( p \) and a proposal distribution \( q \), and we sample from \( q \) and accept samples with probability proportional to the ratio of \( p \) to \( q \), the accepted samples will follow the target distribution \( p \).
 
-1. The proposed model should be somewhat close to the large model, i.e. the proposed model must be able to capture the overall shape of the distribution of the large model. In other words, it must be able to generate the most common and likely tokens that the large model would generate. This ensures that the proposed model is a good approximation of the large model's behavior for the majority of the tokens.
-
-2. The proposed model must be easy to sample from, i.e. we must be able to generate tokens from the proposed model efficiently.
-
+Mathematically, if we sample \( y \) from \( q \) and accept it with probability \( \frac{p(y)}{k q(y)} \), where \( k \) is the maximum value of the ratio \( \frac{p(y)}{q(y)} \) over all \( y \), then the samples will be distributed according to \( p \).

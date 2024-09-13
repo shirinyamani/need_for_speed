@@ -77,7 +77,7 @@ def create_model_fn(params, hparams, temperature, eps=1e-10):
     return model_fn
 
 def main(
-    prompt: str = "Alan Turing theorized that computers would one day become",
+    prompt: str = "Quantization also improves latency and throughput but suffer from perf",
     n_tokens_to_generate: int = 40,
     draft_model_size: str = "124M",
     target_model_size: str = "1558M",
