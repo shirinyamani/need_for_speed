@@ -12,3 +12,4 @@ Now the clever idea is to use a small and cheap draft model to first generate a 
 The reason this works in practice is that most of the time the draft tokens get accepted, because they are easy, so even a much smaller draft model gets them. As these easy tokens get accepted, we skip through those parts in leaps. The hard tokens where the big model disagrees "fall back" to original speed, but actually a bit slower because of all the extra work.
 
 
+# Why this works mathematcially ? 
