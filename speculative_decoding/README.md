@@ -1,4 +1,51 @@
 # Speculative Decoding 
+This project provides a simple implementation of the [Accelerating Large Language Model Decoding with Speculative Sampling](https://arxiv.org/abs/2302.01318) paper by Leviathan et al. The implementation uses pure NumPy for a basic GPT-2 model, demonstrating the concept of speculative decoding in a straightforward manner.
+
+Key features of this implementation:
+- Uses NumPy for all computations, making it easy to understand and modify
+- Implements speculative decoding for a GPT-2 model
+- Compares performance between standard autoregressive sampling and speculative sampling
+- Provides a clear example of how speculative decoding can accelerate language model inference
+
+This simple implementation serves as an educational tool to understand the core concepts of speculative decoding and its potential benefits in accelerating large language model inference.
+
+## How to Use
+
+To run the speculative decoding implementation, use the following command:
+
+```bash
+python main.py \
+    --prompt "Quantization also improves latency and throughput but suffer from perf" \
+    --n_tokens_to_generate 60 \
+    --draft_model_size "124M" \
+    --target_model_size "355M" \
+    --K 4 \
+    --temperature 0 # 0 for greedy sampling
+```
+Sample Output:
+
+```
+Autoregressive Decoding
+--------------------------------------------------
+Time = 112.19s
+Text = Quantization also improves latency and throughput but suffer from perfomance issues.
+
+The problem is that the performance of the GPU is not the only thing that matters. The CPU is also important. The CPU is the main bottleneck in the GPU. The CPU is the main bottleneck in the GPU.
+
+The CPU is the main bottleneck in the GPU
+
+Speculative Decoding
+--------------------------------------------------
+Time = 74.12s
+Text = Quantization also improves latency and throughput but suffer from perfomance issues.
+
+The problem is that the performance of the GPU is not the only thing that matters. The CPU is also important. The CPU is the main bottleneck in the GPU. The CPU is the main bottleneck in the GPU.
+
+The CPU is the main bottleneck in the GPU. The CPU
+
+```
+
+
 
 # Why this works?
 Most of the work getting done is **NOT** about compputation, but its actually about all those read/writes to memory access.
@@ -7,16 +54,19 @@ Bc whats happening is that the input lives on the memory and when you do any com
 
 So each time we are doing round trips which is slow and very expensive. SO the idea is basically we gonna do a single trip to GPU and while that memory or at least a chunk of it is in the GPU, we are gonna do as much computation as possible and then we gonna load back the results to the memory.
 
-Now the clever idea is to use a small and cheap draft model to first generate a candidate sequence of K tokens - a "draft". Then we feed all of these together through the big model in a batch. This is almost as fast as feeding in just one token, per the above. Then we go from left to right over the logits predicted by the model and sample tokens. Any sample that agrees with the draft allows us to immediately skip forward to the next token. If there is a disagreement then we throw the draft away and eat the cost of doing some throwaway work (sampling the draft and the forward passing for all the later tokens).
+> "Now the clever idea is to use a small and cheap draft model to first generate a candidate sequence of K tokens - a 'draft'. Then we feed all of these together through the big model in a batch. This is almost as fast as feeding in just one token, per the above. Then we go from left to right over the logits predicted by the model and sample tokens. Any sample that agrees with the draft allows us to immediately skip forward to the next token. If there is a disagreement then we throw the draft away and eat the cost of doing some throwaway work (sampling the draft and the forward passing for all the later tokens).
+> 
+> The reason this works in practice is that most of the time the draft tokens get accepted, because they are easy, so even a much smaller draft model gets them. As these easy tokens get accepted, we skip through those parts in leaps. The hard tokens where the big model disagrees 'fall back' to original speed, but actually a bit slower because of all the extra work."
+> 
+> — Andrej Karpathy
 
-The reason this works in practice is that most of the time the draft tokens get accepted, because they are easy, so even a much smaller draft model gets them. As these easy tokens get accepted, we skip through those parts in leaps. The hard tokens where the big model disagrees "fall back" to original speed, but actually a bit slower because of all the extra work.
 
 
 # Why this works mathematically?
 
 Speculative decoding's mathematical foundation is rooted in rejection sampling, a Monte Carlo method used to generate samples from a draft/smaller distribution when direct sampling from the target/larger distribution is difficult.
 
-## Mathematical Foundation: Rejection Sampling
+## Mathematical Foundation: [Rejection Sampling](https://en.wikipedia.org/wiki/Rejection_sampling)
 
 Speculative decoding's mathematical foundation is rooted in rejection sampling, a Monte Carlo method used to generate samples from a target distribution when direct sampling is difficult. The process involves using a proposal distribution (the draft model) that's easier to sample from, then accepting or rejecting these samples based on comparison with the target distribution (the large model). The rejection sampling theorem guarantees that if we sample from the proposal distribution and accept samples with probability proportional to the ratio of target to proposal distributions, the accepted samples will follow the target distribution exactly. The reason of why this so magically works roots back to the bayes rule that we use to calculate the conditional probability of the next token given the previous context.
 

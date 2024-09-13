@@ -80,7 +80,7 @@ def main(
     prompt: str = "Quantization also improves latency and throughput but suffer from perf",
     n_tokens_to_generate: int = 40,
     draft_model_size: str = "124M",
-    target_model_size: str = "1558M",
+    target_model_size: str = "355M",
     models_dir: str = "models",
     K: int = 4,
     temperature: float = 0.0,
@@ -130,12 +130,12 @@ def main(
     # print results
     print()
     print("Autoregressive Decoding")
-    print("---------------------")
+    print("-" * 50)
     print(f"Time = {autoregressive_time:.2f}s")
     print(f"Text = {autoregressive_text}")
     print()
     print("Speculative Decoding")
-    print("------------------")
+    print("-" * 50)
     print(f"Time = {speculative_time:.2f}s")
     print(f"Text = {speculative_text}")
     
