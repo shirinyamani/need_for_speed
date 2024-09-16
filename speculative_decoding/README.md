@@ -1,4 +1,4 @@
-# Speculative Decoding 
+# 🔄🔍 Speculative Decoding 
 This project provides a simple implementation of the [Accelerating Large Language Model Decoding with Speculative Sampling](https://arxiv.org/abs/2302.01318) paper by Leviathan et al. The implementation uses pure NumPy for a basic GPT-2 model, demonstrating the concept of speculative decoding in a straightforward manner.
 
 Key features of this implementation:
@@ -9,7 +9,27 @@ Key features of this implementation:
 
 This simple implementation serves as an educational tool to understand the core concepts of speculative decoding and its potential benefits in accelerating large language model inference.
 
-## How to Use
+# Speculative Decoding in a nutshell
+Speculative decoding is an innovative technique designed to accelerate the inference process of large language models. Here's a brief overview of how it works:
+
+1. Draft Model: A smaller, faster "draft" model generates a sequence of K tokens quickly.
+
+2. Target Model: The larger, more accurate "target" model processes the entire sequence (input + draft) in parallel.
+
+3. Verification: The target model's output is compared with the draft model's predictions.
+
+4. Accept or Reject: 
+   - If the target model agrees with a draft token, it's accepted.
+   - If there's a disagreement, the draft is rejected, and the target model's prediction is used instead.
+
+5. Efficiency Gain: This approach allows the target model to process multiple tokens in a single forward pass, potentially reducing the number of expensive computations.
+
+The key advantage is that when the draft model's predictions are mostly correct, the process can be significantly faster than traditional autoregressive decoding. Even when the draft model makes mistakes, the performance doesn't degrade below that of standard autoregressive sampling.
+
+This method leverages the speed of smaller models and the accuracy of larger ones, offering a balance between inference speed and output quality.
+
+
+# 🚀 How to Use
 
 To run the speculative decoding implementation, use the following command:
 
@@ -47,8 +67,8 @@ The CPU is the main bottleneck in the GPU. The CPU
 
 
 
-# Why this works?
-Most of the work getting done is **NOT** about compputation, but its actually about all those read/writes to memory access.
+# 🤔💭 Why this works?
+Most of the work getting done is **NOT** about computation, but its actually about all those read/writes to access memory.
 Bc whats happening is that the input lives on the memory and when you do any computation, it has to travel to the GPU/ to all the caches and registers to do the computation and then back to the memory. This is a very slow process. 
 ![alt text](img/image.png)
 
@@ -62,7 +82,7 @@ So each time we are doing round trips which is slow and very expensive. SO the i
 
 
 
-# Why this works mathematically?
+# 🧮💡Why this works mathematically?
 
 Speculative decoding's mathematical foundation is rooted in rejection sampling, a Monte Carlo method used to generate samples from a draft/smaller distribution when direct sampling from the target/larger distribution is difficult.
 
@@ -70,8 +90,37 @@ Speculative decoding's mathematical foundation is rooted in rejection sampling, 
 
 Speculative decoding's mathematical foundation is rooted in rejection sampling, a Monte Carlo method used to generate samples from a target distribution when direct sampling is difficult. The process involves using a proposal distribution (the draft model) that's easier to sample from, then accepting or rejecting these samples based on comparison with the target distribution (the large model). The rejection sampling theorem guarantees that if we sample from the proposal distribution and accept samples with probability proportional to the ratio of target to proposal distributions, the accepted samples will follow the target distribution exactly. The reason of why this so magically works roots back to the bayes rule that we use to calculate the conditional probability of the next token given the previous context.
 
-## Rejection Sampling Theorem
+## ❌🎯 Rejection Sampling Theorem
 
 The theorem states that if we have a target distribution \( p \) and a proposal distribution \( q \), and we sample from \( q \) and accept samples with probability proportional to the ratio of \( p \) to \( q \), the accepted samples will follow the target distribution \( p \).
 
-Mathematically, if we sample \( y \) from \( q \) and accept it with probability \( \frac{p(y)}{k q(y)} \), where \( k \) is the maximum value of the ratio \( \frac{p(y)}{q(y)} \) over all \( y \), then the samples will be distributed according to \( p \).
+Mathematically, this can be expressed as:
+
+1. Sample y from q(y)
+2. Accept y with probability min(1, p(y) / (M * q(y)))
+
+Where:
+- p(y) is the target distribution
+- q(y) is the proposal distribution
+- M is a constant such that M ≥ max(p(y) / q(y)) for all y
+
+If we follow this procedure, the accepted samples will be distributed according to p(y).
+
+
+# ⚡🚀 Summary of most common speed up techniques:
+## 🧠💻 Faster Training
+- Device: Move on to GPU
+- Mix percisions
+- Gradient Accumulation
+- Distributed Training: 
+
+## ⚡🤖 Faster Inference
+- Quantization
+- Speculative Decoding (This repo 💖)
+- Pruning
+- Caching
+    - inference-attention: KV cache
+    - in production: Prompt cache/ Exact cache/ Semantic cache
+- Knowledge Distillation
+
+

@@ -58,7 +58,7 @@ def spec_sampling(input_seq, draft_model, target_model, N_future, k):
         input_seq = np.append(input_seq, get_sample(q[-1]))
         n += 1
 
-      # just keeping my sanity
+      # for the bar
       pbar.update(n - prev_n)
       assert n == len(input_seq), f"{n} {len(input_seq)}"
   return input_seq
@@ -129,12 +129,12 @@ def main(
 
     # print results
     print()
-    print("Autoregressive Decoding")
+    print("Autoregressive Decoding:")
     print("-" * 50)
     print(f"Time = {autoregressive_time:.2f}s")
     print(f"Text = {autoregressive_text}")
     print()
-    print("Speculative Decoding")
+    print("Speculative Decoding:")
     print("-" * 50)
     print(f"Time = {speculative_time:.2f}s")
     print(f"Text = {speculative_text}")
