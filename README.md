@@ -11,6 +11,8 @@
 - Speculative Decoding
 - Pruning
 - Caching
+    - inference-attention: KV cache
+    - in production: Prompt cache/ Exact cache/ Semantic cache
 - Knowledge Distillation
 
 
