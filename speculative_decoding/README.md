@@ -106,6 +106,32 @@ Where:
 
 If we follow this procedure, the accepted samples will be distributed according to p(y).
 
+## 🤔 Question: what if we don't have access to the same family of models for both draft and target?
+In practice, we often don't have access to the same family of models for both draft and target. This is where alternative techniques come into play:
+
+1. Medusa:
+   Medusa is a technique that allows for efficient parallel decoding without requiring a draft model from the same family. It works by predicting multiple future tokens simultaneously, enabling parallelism in autoregressive models.
+
+   Key points:
+   - Uses a single large language model
+   - Generates multiple possible continuations in parallel
+   - Employs a tree-like structure to explore different token sequences
+   - Can significantly speed up inference without compromising quality
+
+2. N-gram Models:
+   N-gram models can be used as simple, lightweight draft models for speculative decoding, even when the target model is a large neural network.
+
+   Key points:
+   - Based on statistical properties of the training data
+   - Can quickly generate draft sequences
+   - Much simpler and faster than neural models
+   - May have lower accuracy, but can still provide useful drafts for easy tokens
+
+These techniques demonstrate that speculative decoding can be adapted to work with heterogeneous model combinations, broadening its applicability in various scenarios where access to similar model families is limited.
+
+
+
+
 
 # ⚡🚀 Summary of most common speed up techniques:
 ## 🧠💻 Faster Training
